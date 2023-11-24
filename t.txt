@@ -1,7 +1,8 @@
  stage('List All Tools') {
             steps {
-                script {
-                    def allToolInstallations = ToolInstallation.all()
+                 script {
+                    def toolInstallationManager = Jenkins.instance.getExtensionList(hudson.model.JDK.DescriptorImpl.class)[0]
+                    def allToolInstallations = toolInstallationManager.getInstallations()
 
                     echo "Available tools:"
                     allToolInstallations.each { toolInstallation ->
