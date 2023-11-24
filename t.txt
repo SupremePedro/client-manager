@@ -1,16 +1,11 @@
  stage('List All Tools') {
             steps {
                 script {
-                    def allTools = toolDescriptors.findAll()
-                    
+                    def allToolInstallations = ToolInstallation.all()
+
                     echo "Available tools:"
-                    allTools.each { toolDescriptor ->
-                        def toolInstallation = toolDescriptor.installs.find { install ->
-                            install.name == toolDescriptor.getName()
-                        }
-                        if (toolInstallation != null) {
-                            echo "  - ${toolDescriptor.getName()} (${toolInstallation.home})"
-                        }
+                    allToolInstallations.each { toolInstallation ->
+                        echo "  - ${toolInstallation.name} (${toolInstallation.home})"
                     }
                 }
             }
