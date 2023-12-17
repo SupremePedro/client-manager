@@ -1,13 +1,16 @@
- stage('List All Tools') {
-            steps {
-                 script {
-                    def toolInstallationManager = Jenkins.instance.getExtensionList(hudson.model.JDK.DescriptorImpl.class)[0]
-                    def allToolInstallations = toolInstallationManager.getInstallations()
+# Specify the root directory you want to analyze
+$rootDirectory = "C:\Your\Directory\Path"
 
-                    echo "Available tools:"
-                    allToolInstallations.each { toolInstallation ->
-                        echo "  - ${toolInstallation.name} (${toolInstallation.home})"
-                    }
-                }
-            }
-        }
+# Get a list of all folders and their sizes in the specified directory and its subdirectories
+$folderSizes = Get-ChildItem -Path $rootDirectory -Directory -Recurse | ForEach-Object {
+    [PSCustomObject]@{
+        FolderPath = $_.FullName
+        SizeMB = (Get-ChildItem $_.FullName -File -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
+    }
+}
+
+# Sort the results by folder size in descending order
+$sortedFolders = $folderSizes | Sort-Object -Property SizeMB -Descending
+
+# Display the sorted results in a table
+$sortedFolders | Format-Table -AutoSize
