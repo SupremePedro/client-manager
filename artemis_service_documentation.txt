@@ -1,0 +1,153 @@
+# Artemis Service - Enablement List Update Feature Documentation
+
+## Introduction
+
+This document outlines the newly added functionality to the Artemis Service that involves updating the enablement list by fetching data from a REST API.
+
+## Overview
+
+The enablement list update feature is designed to fetch and synchronize service provider data linked to counterparties. The process involves two main steps:
+1. Initially fetching top-level counterparties that contain `service_providers`.
+2. Subsequently fetching sub-entities based on `ownership.parent_id` which do not contain `service_providers`. However, the relevant `service_providers` information is still required and is fetched from the parent entity.
+
+## Endpoints
+
+### Update Enablement List
+
+- **Endpoint:** `/sds-list`
+- **Method:** POST
+- **Description:** Initiates the process to update the enablement list with service provider data.
+
+## Queries
+
+### Top-Level Query
+
+**POST** `{HOST_URL}/counterparty/find`
+
+```json
+{
+  "take": 5000,
+  "afterId": null,
+  "fields": [
+    "service_providers",
+    "ownership"
+  ],
+  "criteria": {
+    "operator": "And",
+    "items": [
+      {
+        "field": "service_providers.provider_name",
+        "value": "Barrenjoey",
+        "operator": "Eq"
+      }
+    ]
+  }
+}
+```
+
+#### Response Example
+
+```json
+[
+  {
+    "service-providers": [
+      {
+        "trade_indicator": "yes",
+        "clientname_disclosure": "yes",
+        "provider_name": "Barrenjoey",
+        "client_disclosure_date": "2024-03-20T00:00:00"
+      }
+    ],
+    "id": 10000280,
+    "ownership": [
+      {
+        "percentage_owned": 100,
+        "parent_id": 10155075
+      }
+    ]
+  }
+]
+```
+
+### Sub-Level Query
+
+**POST** `{HOST_URL}/counterparty/find`
+
+```json
+{
+  "take": 5000,
+  "afterId": null,
+  "fields": [
+    "service_providers",
+    "ownership"
+  ],
+  "criteria": {
+    "operator": "And",
+    "items": [
+      {
+        "field": "ownership.parent_id",
+        "value": [
+          "1",
+          "2"
+        ],
+        "operator": "In"
+      }
+    ]
+  }
+}
+```
+
+#### Response Example
+
+```json
+[
+  {
+    "id": 10000280,
+    "ownership": [
+      {
+        "percentage_owned": 100,
+        "parent_id": 10155075
+      }
+    ]
+  }
+]
+```
+
+## Implementation Details
+
+### In client-config service used dependency
+
+```xml
+<dependency>
+  <groupId>com.barclays.sds</groupId>
+  <artifactId>entityservice.api.client</artifactId>
+  <version>1.0</version>
+</dependency>
+
+<repositories>
+  <repository>
+    <id>libref</id>
+    <name>libref</name>
+    <url>https://nexus.barcapint.com/nexus/content/groups/ibrd-maven2-groups</url>
+  </repository>
+</repositories>
+```
+
+We are using the `find` method of `EntityService` for fetching:
+
+`com.barclays.sds.entityservice.api.client.services.EntityService`
+
+```java
+entityService.find("counterparty", sdsEntitySearch);
+```
+
+`EntityService` uses `HttpClient` with SSL context and sends async requests.
+
+```java
+this.connectedClient = HttpClient.newBuilder().sslContext(sslContext).build();
+this.connectedClient.sendAsync(request, BodyHandlers.ofString());
+```
+
+We need to configure `TrustStore` and `KeyStore` for using the Artemis API.
+
+- **KeyStore file has PKCS #12 format.**
