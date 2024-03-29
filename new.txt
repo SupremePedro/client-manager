@@ -40,3 +40,5 @@ In our Kubernetes deployment architecture, a significant emphasis is placed on t
 
 Static IP Allocation: Reserving a static IP within our Kubernetes ecosystem to serve as a reliable communication point.
 Firewall Rules: Establishing firewall rules to make this static IP accessible, which is vital for enabling access from external services and ensuring uninterrupted interaction with Barrenjoey.
+
+The task's primary focus was to adapt the Bedrock Project for Kubernetes deployment, necessitating source code and configuration adjustments for containerization and CI/CD automation. A pivotal achievement was the successful development and deployment of pricing gateways, which underwent real integration testing on a UAT environment with Barrenjoey. This ensured that the gateways were fully functional and compatible with essential external systems, marking a significant milestone in the project's transition to a more modern infrastructure.
