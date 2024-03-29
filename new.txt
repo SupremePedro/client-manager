@@ -1,0 +1,42 @@
+Task Goal
+The primary goal was to facilitate the deployment of the Bedrock Project in a Kubernetes environment. This entailed containerizing the existing application, previously hosted on Unix servers, into Docker containers. Additionally, we aimed to automate the deployment process with a Jenkins Pipeline, enhancing the efficiency of our CI/CD workflow.
+
+Technical Details
+The Original Application: Build and Deployment Process
+The application's lifecycle—from build to deployment—is governed through a Maven-based CI process, utilizing TeamCity. The key phases include:
+
+Compilation: Compiling the source code into executable JAR files.
+Packaging: Utilizing the maven-assembly-plugin to bundle JARs and dependencies into a single .tgz file.
+Post-Build Operations: The maven-antrun-plugin is employed for renaming and versioning, ensuring proper management of build artifacts.
+Deployment Steps
+Transfer: Securely copying the .tgz package to the Unix server.
+Service Management: Leveraging the Bedrock framework to manage service operations, including stopping the current instance and starting the newly deployed jar.
+It's crucial to note that the Bedrock project integrates an attributeEngine file, a pivotal component created by AttributeManager.
+
+New Implementation
+Source Code Preparation Before Migration
+Migrating to a Kubernetes environment necessitates several adjustments to both the source code and configuration:
+
+Bedrock Infrastructure: Acquire the bedrockServer folder from the provided URL.
+Application Folder: Ensure the correct naming within bedrockServer/deploy/data/{applicationName}.
+Attribute Engine: Position the attributeEngine file appropriately in the bedrockServer/deploy/data folder.
+Configuration adjustments include:
+
+Setting the PrimaryHost parameter to localhost in the attributeEngine file.
+Updating bedrockServer/deploy/bin/setenv.sh to mirror the attributeEngine filename.
+Modifying export AppDataDir= and export PrimaryHost= values to accommodate a non-Unix setup.
+Docker Configuration
+The Dockerfile is meticulously designed to emulate the Bedrock framework's infrastructure, mirroring the Unix server configuration:
+
+Establishes necessary directories, copies essential files (including Kerberos configuration), the Bedrock server, and monitoring applications.
+Creates symbolic links for keys and other vital directories.
+Implements build and deploy steps analogous to those in the Maven plugins.
+Additional Dockerfile features:
+
+Configures ports for application health checks, typically on port 8080, and additional ports for consumer-facing functionalities.
+An entry point script that launches the monitoring application, initiates the Bedrock server's start command, and directs log output to the console.
+Static IP Configuration
+In our Kubernetes deployment architecture, a significant emphasis is placed on the configuration of a static IP address. This static IP is essential for maintaining a stable and persistent connection, especially for external system interactions, such as with Barrenjoey. To ensure a seamless and secure connection, we've implemented:
+
+Static IP Allocation: Reserving a static IP within our Kubernetes ecosystem to serve as a reliable communication point.
+Firewall Rules: Establishing firewall rules to make this static IP accessible, which is vital for enabling access from external services and ensuring uninterrupted interaction with Barrenjoey.
